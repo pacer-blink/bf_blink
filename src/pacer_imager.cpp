@@ -142,17 +142,6 @@ void CPacerImager::dirty_image( CBgFits& uv_grid_real_param, CBgFits& uv_grid_im
       in_buffer[i][1]	= im;
    }
 
-   // should be the same and it is the same !
-/*   for(int y=0;y<height;y++){
-      for(int x=0;x<width;x++){
-         double re = uv_grid_real.getXY(x,y);
-         double im = uv_grid_imag.getXY(x,y);
-         
-         int pos = y*width + x;
-         in_buffer[pos][0]   = re;
-         in_buffer[pos][1]   = im;
-      }
-   }*/
    
    // Transform to frequency space.
    // https://www.fftw.org/fftw3_doc/Complex-Multi_002dDimensional-DFTs.html
@@ -173,20 +162,11 @@ void CPacerImager::dirty_image( CBgFits& uv_grid_real_param, CBgFits& uv_grid_im
    #endif
 
    for(int i = 0; i < size; i++) {
-//      out_data[i] = out_buffer[i][0]*out_buffer[i][0] + out_buffer[i][1]*out_buffer[i][1]; // amplitude ?
      out_data_real[i] = out_buffer[i][0]*fnorm; // real 
      out_data_imag[i] = out_buffer[i][1]*fnorm; // imag
    }   
 
    char outDirtyImageReal[1024],outDirtyImageImag[1024];   
-   /*
-   if( bSaveIntermediate ){
-      sprintf(outDirtyImageReal,"dirty_test_real_%dx%d.fits",width,height);
-      sprintf(outDirtyImageImag,"dirty_test_imag_%dx%d.fits",width,height);
-   
-      out_image_real.WriteFits( outDirtyImageReal );
-      out_image_imag.WriteFits( outDirtyImageImag );
-   }*/
    
    // calculate and save FFT-shifted image :
    CBgFits out_image_real2( out_image_real.GetXSize(), out_image_real.GetYSize() ), out_image_imag2( out_image_real.GetXSize(), out_image_real.GetYSize() );
@@ -215,120 +195,6 @@ void CPacerImager::dirty_image( CBgFits& uv_grid_real_param, CBgFits& uv_grid_im
      
 }
 
-bool CPacerImager::read_corr_matrix( const char* basename, CBgFits& fits_vis_real, CBgFits& fits_vis_imag, 
-                                     CBgFits& fits_vis_u, CBgFits& fits_vis_v, CBgFits& fits_vis_w,
-                                     const char* szPostfix )
-{
-  // creating FITS file names for REAL, IMAG and U,V,W input FITS files :
-  string fits_file_real = basename;
-  fits_file_real += "_vis_real";
-  if( strlen( szPostfix ) ){
-     fits_file_real += szPostfix;
-  }
-  fits_file_real += ".fits";
- 
-  string fits_file_imag = basename;
-  fits_file_imag += "_vis_imag";
-  if( strlen( szPostfix ) ){
-     fits_file_imag += szPostfix;
-  }
-  fits_file_imag += ".fits";
- 
-  string fits_file_u = basename;
-  fits_file_u += "_u";
-  if( strlen( szPostfix ) ){
-     fits_file_u += szPostfix;
-  }
-  fits_file_u += ".fits";
- 
-  string fits_file_v = basename;
-  fits_file_v += "_v";
-  if( strlen( szPostfix ) ){
-     fits_file_v += szPostfix;
-  }
-  fits_file_v += ".fits";
- 
-  string fits_file_w = basename;
-  fits_file_w += "_w";
-  if( strlen( szPostfix ) ){
-     fits_file_w += szPostfix;
-  }
-  fits_file_w += ".fits";
-
-
-  printf("Expecting the following files to exist:\n");
-  printf("\t%s\n",fits_file_real.c_str()); 
-  printf("\t%s\n",fits_file_imag.c_str()); 
-  printf("\t%s\n",fits_file_u.c_str()); 
-  printf("\t%s\n",fits_file_v.c_str()); 
-  printf("\t%s\n",fits_file_w.c_str()); 
-  
-  // REAL(VIS)
-  printf("Reading fits file %s ...\n",fits_file_real.c_str());
-  if( fits_vis_real.ReadFits( fits_file_real.c_str(), 0, 1, 1 ) ){
-     printf("ERROR : could not read visibility FITS file %s\n",fits_file_real.c_str());
-     return false;
-  }else{
-     printf("OK : fits file %s read ok\n",fits_file_real.c_str());
-  }
-
-  // IMAG(VIS)
-  printf("Reading fits file %s ...\n",fits_file_imag.c_str());
-  if( fits_vis_imag.ReadFits( fits_file_imag.c_str(), 0, 1, 1 ) ){
-     printf("ERROR : could not read visibility FITS file %s\n",fits_file_imag.c_str());
-     return false;
-  }else{
-     printf("OK : fits file %s read ok\n",fits_file_imag.c_str());
-  }
-
-  if( strlen( m_ImagerParameters.m_AntennaPositionsFile.c_str() ) && MyFile::DoesFileExist(  m_ImagerParameters.m_AntennaPositionsFile.c_str() ) ){
-     int n_ants = m_AntennaPositions.ReadAntennaPositions( m_ImagerParameters.m_AntennaPositionsFile.c_str() );
-     #ifdef DCP_DEBUG
-     printf("INFO : read %d antenna positions from file %s\n",n_ants,m_ImagerParameters.m_AntennaPositionsFile.c_str());
-     #endif
-
-     fits_vis_u.Realloc( fits_vis_real.GetXSize(), fits_vis_real.GetYSize() );
-     fits_vis_v.Realloc( fits_vis_real.GetXSize(), fits_vis_real.GetYSize() );
-     fits_vis_w.Realloc( fits_vis_real.GetXSize(), fits_vis_real.GetYSize() );
-
-     int n_baselines = m_AntennaPositions.CalculateUVW( fits_vis_u, fits_vis_v, fits_vis_w, true );
-     #ifdef DCP_DEBUG
-     printf("INFO : calculated UVW coordinates of %d baselines\n",n_baselines);
-     #endif
-  }else{
-     printf("WARNING : antenna position file %s not specified or does not exist -> will try using UVW FITS files : %s,%s,%s\n",m_ImagerParameters.m_AntennaPositionsFile.c_str(),fits_file_u.c_str(),fits_file_v.c_str(),fits_file_w.c_str());
-
-     // U :
-     printf("Reading fits file %s ...\n",fits_file_u.c_str());
-     if( fits_vis_u.ReadFits( fits_file_u.c_str(), 0, 1, 1 ) ){
-        printf("ERROR : could not read U FITS file %s\n",fits_file_u.c_str());
-        return false;
-     }else{
-        printf("OK : fits file %s read ok\n",fits_file_u.c_str());
-     }
-  
-     // V : 
-     printf("Reading fits file %s ...\n",fits_file_v.c_str());
-     if( fits_vis_v.ReadFits( fits_file_v.c_str(), 0, 1, 1 ) ){
-        printf("ERROR : could not read V FITS file %s\n",fits_file_v.c_str());
-        return false;
-     }else{
-        printf("OK : fits file %s read ok\n",fits_file_v.c_str());
-     }
-  
-     // W : 
-     printf("Reading fits file %s ...\n",fits_file_w.c_str());
-     if( fits_vis_w.ReadFits( fits_file_w.c_str(), 0, 1, 1 ) ){
-        printf("ERROR : could not read W FITS file %s\n",fits_file_w.c_str());
-        return false;
-     }else{
-        printf("OK : fits file %s read ok\n",fits_file_w.c_str());
-     }
-  }
-
-
-  return true;
-} 
 
 void CPacerImager::gridding( CBgFits& fits_vis_real, CBgFits& fits_vis_imag, CBgFits& fits_vis_u, CBgFits& fits_vis_v, CBgFits& fits_vis_w,
                CBgFits& uv_grid_real, CBgFits& uv_grid_imag, CBgFits& uv_grid_counter, double delta_u, double delta_v, 
@@ -356,30 +222,8 @@ void CPacerImager::gridding( CBgFits& fits_vis_real, CBgFits& fits_vis_imag, CBg
   v_min = -v_max;
 //  v_max = +35;
 
-
-// calculate using CASA formula from image_tile_auto.py :
-// synthesized_beam=(lambda_m/max_baseline)*(180.00/math.pi)*60.00 # in arcmin
-// lower=synthesized_beam/5.00
-// higher=synthesized_beam/3.00
-// cellside_float=(lower+higher)*0.5
-// NEW :
-//   double alpha = 4.00/15.00; // from (1/5+1/3)*0.5 = 4/15
-//   double wrong_factor = 1.00; // 4.00 factor for due to U range -35 to +35 instead of ~-17.5/2 to +17.5/2 (factor 4 )
-//   double delta_u = wrong_factor*alpha*(u_max-u_min)/(n_pixels); // factor for due to U range -35 to +35 instead of ~-17.5/2 to +17.5/2 (factor 4 )
-//   double delta_v = wrong_factor*alpha*(v_max-v_min)/(n_pixels);
-//   int freq_channel = 204;
-//   double frequency_mhz = freq_channel*(400.00/512.00);
-//   if( gFrequencyMHz > 0 ){
-//      frequency_mhz = gFrequencyMHz;
-//   }
    double frequency_hz = frequency_mhz*1e6;
    double wavelength_m = VEL_LIGHT / frequency_hz;
-   // UV pixel size as function FOVtoGridsize in  /home/msok/mwa_software/RTS_128t/src/gridder.c
-   // delta_u = (VEL_LIGHT/frequency_Hz)/(gFOV_degrees*M_PI/180.);
-   // delta_v = (VEL_LIGHT/frequency_Hz)/(gFOV_degrees*M_PI/180.);
-   // OLD :
-//  double delta_u = (u_max - u_min) / n_pixels;  
-//  double delta_v = (v_max - v_min) / n_pixels;
 
    #ifdef DCP_DEBUG
    printf("DEBUG : wavelength = %.4f [m] , frequency = %.4f [MHz]\n",wavelength_m,frequency_mhz);
@@ -387,13 +231,6 @@ void CPacerImager::gridding( CBgFits& fits_vis_real, CBgFits& fits_vis_imag, CBg
    printf("DEBUG : V limits %.8f - %.8f , delta_v = %.8f\n", v_min, v_max , delta_v );
    printf("DEBUG : W limits %.8f - %.8f\n", w_min, w_max );
    #endif
-
-  // is it ok to chose the UV plane center based on this:  
-//  double u_center = (u_min + u_max)/2.00;  
-//  double v_center = (v_min + v_max)/2.00;  
-
-  // Limits of UVW :
-  // double GetStat( double& mean, double& rms, double& minval, double& maxval, 
 
 
   // simple gridding :
@@ -417,8 +254,6 @@ void CPacerImager::gridding( CBgFits& fits_vis_real, CBgFits& fits_vis_imag, CBg
                  double uv_distance = sqrt(u*u + v*v);
               
                  if( uv_distance > min_uv ){ // check if larger than minimum UV distance 
-//                 int u_index = round( (u - u_min)/delta_u );
-//                 int v_index = round( (v - v_min)/delta_v );
                     double u_pix = round( u/delta_u );
                     double v_pix = round( v/delta_v );
                     int u_index = u_pix + n_pixels/2; // was u - u_center
@@ -433,8 +268,6 @@ void CPacerImager::gridding( CBgFits& fits_vis_real, CBgFits& fits_vis_imag, CBg
                     uv_grid_counter.setXY( u_index, v_index , count + 1 );
               
                  // add conjugates :
-//                 u_index = round( (-u - u_min)/delta_u );
-//                 v_index = round( (-v - v_min)/delta_v );
                     u_index = -u_pix + n_pixels/2; // was round( (-u - u_center)/delta_u ) + ...
                     v_index = -v_pix + n_pixels/2; // was round( (-v - v_center)/delta_v ) + ...
                     uv_grid_real.addXY( u_index, v_index, re );
@@ -466,7 +299,7 @@ void CPacerImager::gridding( CBgFits& fits_vis_real, CBgFits& fits_vis_imag, CBg
      uv_grid_imag.Divide( uv_grid_counter );
   }
   
-  /* 
+  #ifdef DCP_DEBUG
   char uv_grid_re_name[1024],uv_grid_im_name[1024],uv_grid_counter_name[1024];
   sprintf(uv_grid_re_name,"uv_grid_real_%dx%d.fits",n_pixels,n_pixels);
   sprintf(uv_grid_im_name,"uv_grid_imag_%dx%d.fits",n_pixels,n_pixels);
@@ -483,7 +316,7 @@ void CPacerImager::gridding( CBgFits& fits_vis_real, CBgFits& fits_vis_imag, CBg
   if( uv_grid_counter.WriteFits( uv_grid_counter_name ) ){
      printf("ERROR : could not write output file %s\n",uv_grid_counter_name);
   }
-  */
+  #endif
 
 }
 
@@ -550,47 +383,6 @@ bool CPacerImager::run_imager( CBgFits& fits_vis_real, CBgFits& fits_vis_imag, C
   return  true;   
 }
 
-
-//-----------------------------------------------------------------------------------------------------------------------------
-// Wrapper to run_imager :
-// Reads FITS files and executes overloaded function run_imager ( as above )
-//-----------------------------------------------------------------------------------------------------------------------------
-bool CPacerImager::run_imager( const char* basename, const char* szPostfix,
-                               double frequency_mhz, 
-                               int n_pixels,
-                               double FOV_degrees,
-                               double min_uv,                  /*=-1000,*/
-                               bool do_gridding,               /*=true*/
-                               bool do_dirty_image,            /*=true*/
-                               const char* weighting,          /* ="" */   // weighting : U for uniform (others not implemented)
-                               const char* in_fits_file_uv_re, /*=""*/ // gridded visibilities can be provided externally
-                               const char* in_fits_file_uv_im, /*=""*/ // gridded visibilities can be provided externally                               
-                               const char* szBaseOutFitsName   /*=NULL*/
-                  )
-{
-   // read input data (correlation matrix and UVW) :
-   CBgFits fits_vis_real, fits_vis_imag, fits_vis_u, fits_vis_v, fits_vis_w;
-   if( read_corr_matrix( basename, fits_vis_real, fits_vis_imag, fits_vis_u, fits_vis_v, fits_vis_w, szPostfix ) ){
-      printf("OK : input files read ok\n");
-   }else{
-      printf("ERROR : could not read one of the input files\n");
-   }
-
-   bool ret = run_imager( fits_vis_real, fits_vis_imag, fits_vis_u, fits_vis_v, fits_vis_w,
-                         frequency_mhz, 
-                         n_pixels, 
-                         FOV_degrees, 
-                         min_uv,
-                         do_gridding, 
-                         do_dirty_image, 
-                         weighting, 
-                         in_fits_file_uv_re, in_fits_file_uv_im, 
-                         szBaseOutFitsName
-                        );
-
-   return ret;               
-}
-
 //-----------------------------------------------------------------------------------------------------------------------------
 // Wrapper to run_imager - executes overloaded function run_imager ( as above ) :
 //  INPUT : pointer to data
@@ -616,7 +408,7 @@ bool CPacerImager::run_imager( float* data_real,
   // fits_vis_imag.SetValue(0.00);
 
   // ~corner-turn operation which can be quickly done on GPU: 
-  // DCP: COMMENT THIS OUT IF YOU GET RUBBISH!
+  // DCP: MAY NEED TO UNCOMMENT FOR xGPU INPUT
   /*
   int counter=0;
   for(int i=0;i<n_ant;i++){

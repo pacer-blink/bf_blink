@@ -50,12 +50,6 @@ public :
                      bool bSaveIntermediate=false, const char* szBaseOutFitsName=NULL, bool bSaveImaginary=true );
 
    //-----------------------------------------------------------------------------------------------------------------------------
-   // read input data correlation matrix and UVW from FITS files (this is the first type of input )
-   // TODO : add other input formats (e.g. binary data)
-   //-----------------------------------------------------------------------------------------------------------------------------
-   bool read_corr_matrix( const char* basename, CBgFits& fits_vis_real, CBgFits& fits_vis_imag, CBgFits& fits_vis_u, CBgFits& fits_vis_v, CBgFits& fits_vis_w, const char* szPostfix );
-
-   //-----------------------------------------------------------------------------------------------------------------------------
    // INPUT  : 
    //          fits_vis_real, fits_vis_imag : visibilities (REAL and IMAG 2D arrays as FITS class) 
    //          fits_vis_u, fits_vis_v, fits_vis_w : UVW (real values baselines in units of wavelength - see TMS)
@@ -93,22 +87,6 @@ public :
                     const char* szBaseOutFitsName=NULL
                   );
 
-   //-----------------------------------------------------------------------------------------------------------------------------
-   // Wrapper to run_imager :
-   // Reads FITS files and executes overloaded function run_imager ( as above )
-   //-----------------------------------------------------------------------------------------------------------------------------
-   bool run_imager( const char* basename, const char* szPostfix,
-                    double frequency_mhz,
-                    int    n_pixels,
-                    double FOV_degrees,
-                    double min_uv=-1000,        // minimum UV 
-                    bool   do_gridding=true,    // excute gridding  (?)
-                    bool   do_dirty_image=true, // form dirty image (?)
-                    const char* weighting="",   // weighting : U for uniform (others not implemented)
-                    const char* in_fits_file_uv_re="", // gridded visibilities can be provided externally
-                    const char* in_fits_file_uv_im="", // gridded visibilities can be provided externally                    
-                    const char* szBaseOutFitsName=NULL
-                  );
                   
    bool run_imager( float* data_real, 
                     float* data_imag,
