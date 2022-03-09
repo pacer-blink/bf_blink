@@ -1,6 +1,6 @@
 from bifrost.libbifrost import _check, _get, BifrostObject
 from bifrost.ndarray import asarray
-import msok_imager_generated as _gen
+from . import msok_imager_generated as _gen
 
 class MsokImager(BifrostObject):
     def __init__(self):

@@ -857,7 +857,9 @@ del loaderclass
 
 # End loader
 
-add_library_search_dirs([])
+# DCP: Add path pointing to directory housing this file
+dirpath = os.path.dirname(os.path.realpath(__file__))
+add_library_search_dirs([dirpath])
 
 # Begin libraries
 _libs["bifrost"] = load_library("bifrost")

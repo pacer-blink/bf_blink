@@ -55,7 +55,7 @@ msok_lib = library('msok_imager', 'src/msok_imager.cpp',
 
 message('Copying python wrapper for msok_imager')
 r = run_command('cp', 'src/msok_imager.py', builddir)
-message(r.stdout().strip())
 r = run_command('cp', 'src/msok_imager_generated.py', builddir)
-message(r.stdout().strip())
+r = run_command('cp', 'src/__init__.py', builddir)
+#message(r.stdout().strip())
 
