@@ -1,0 +1,6 @@
+[wrap-git]
+url = https://github.com/telegraphic/msfitslib
+revision = head
+
+[provide]
+msfitslib_dep = msfitslib_dep

@@ -1,0 +1,6 @@
+[wrap-git]
+url = https://github.com/telegraphic/imager
+revision = head
+
+[provide]
+imager_dep = imager_dep

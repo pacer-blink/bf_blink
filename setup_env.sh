@@ -1,3 +1,3 @@
-source /home/dancpr/py3.init
-export PKG_CONFIG_PATH=/home/dancpr/software/lib/pkgconfig:$PKG_CONFIG_PATH
+export CPATH=/home/dancpr/software/local/include:$CPATH
+export MSFITSLIB_DIR=/home/dancpr/software/bf_plugins/bf_blink/subprojects/msfitslib/build
 
