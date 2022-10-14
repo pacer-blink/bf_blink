@@ -1,36 +1,24 @@
 # Bifrost plugin for msok_imager
-project('msok_imager', 'cpp', version: '0.0.1',
-         default_options : ['cpp_std=c++11'])
+project('msok_imager', 'cpp', version: '0.0.1')
 
 # Basic setup
 plugin_name = 'msok_imager'
-cc = meson.get_compiler('cpp')
-builddir = meson.project_build_root()
-cmake = import('cmake')
 
-# Dependency: FFTW3
-fftw3_dep = dependency('fftw3')
-
-# Dependency: CFITSIO 
-cfitsio_dep = dependency('cfitsio')
-
-# Dependency: libnova
-libnova_dep = cc.find_library('libnova', dirs : '/usr/lib/x86_64-linux-gnu') 
-
-# Dependency: dl (linking)
-ldl_dep     = cc.find_library('dl') 
+comp_flags = ['-Wno-unused-variable', '-Wno-dangling-else', '-Wno-sign-compare', '-Wno-parentheses',
+              '-Wno-non-virtual-dtor', '-Wno-format', '-Wno-reorder', '-Wno-unused-but-set-variable']
+add_global_arguments(comp_flags, language : 'cpp')
 
 # Dependency: bifrost
 bf_dep = dependency('bifrost')
 bifrost_src_path = '/home/dancpr/software/bifrost/src'
-#mslib_src_path   = '/home/aavs/Software/msfitslib/src'
 
-# Subproject: msfitslib
-msfits = subproject('msfitslib')
-imager = subproject('imager')
+# Subprojects: msfitslib and imager
+msfits     = subproject('msfitslib')
+imager     = subproject('imager')
+correlator = subproject('correlator')
 
-# Dependency: msfitslib (Marcin's FITS library)
-#mslib_dep = cc.find_library('msfitslib', dirs : '/home/aavs/Software/msfitslib/build') 
+msfitslib_dep = msfits.get_variable('msfitslib_dep')
+imager_dep = imager.get_variable('imager_dep')
 
 # List of directories to include when building plugin
 include_dirs = include_directories(
@@ -46,11 +34,10 @@ include_dirs = include_directories(
 #              include_directories: include_dirs)
 
 # Generate shared object from imager cpp code (bifrost wrapper)
-#msok_lib = library('msok_imager', 'src/msok_imager.cpp', 
-#              version : '0.0.1', soversion : '0', 
-#              link_with: pacer_imager_lib,
-#              dependencies: [bf_dep, mslib_dep],  
-#              include_directories: include_dirs)
+msok_lib = library('msok_imager', 'src/msok_imager.cpp', 
+              version : '0.0.1', soversion : '0', 
+              dependencies: [imager_dep, msfitslib_dep],  
+              include_directories: include_dirs)
 
 # Generate an executable (useful for debugging segfaults)
 #msok_exe = executable('msok_imager', 'src/msok_imager.cpp', 
