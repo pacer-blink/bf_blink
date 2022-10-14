@@ -1,0 +1,6 @@
+[wrap-git]
+url = https://github.com/pacer-blink/correlator
+revision = head
+
+[provide]
+correlator_dep = correlator_dep

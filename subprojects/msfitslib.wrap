@@ -1,5 +1,5 @@
 [wrap-git]
-url = https://github.com/telegraphic/msfitslib
+url = https://github.com/pacer-blink/msfitslib
 revision = head
 
 [provide]
