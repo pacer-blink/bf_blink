@@ -58,7 +58,8 @@ public:
       strcpy(_weighting, weighting);
       strcpy(_base_out_fits_name, base_out_fits_name);
       strcpy(_antenna_positions_file, antenna_positions_file);
-      _imager.m_ImagerParameters.SetParameters( _antenna_positions_file );
+      _imager.m_ImagerParameters.m_bConstantUVW = 1;
+      _imager.m_ImagerParameters.SetGlobalParameters( _antenna_positions_file, 1);
     }
 
     // Do any zeroing / memset stuff here

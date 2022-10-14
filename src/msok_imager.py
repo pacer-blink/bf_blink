@@ -1,7 +1,10 @@
 from bifrost.libbifrost import _check, _get, BifrostObject
 from bifrost.ndarray import asarray
-from . import msok_imager_generated as _gen
-
+try:
+    from . import msok_imager_generated as _gen
+except:
+    import msok_imager_generated as _gen
+    
 class MsokImager(BifrostObject):
     def __init__(self):
         BifrostObject.__init__(self, _gen.MsokImagerCreate, _gen.MsokImagerDestroy)
@@ -33,7 +36,7 @@ if __name__ == "__main__":
     import h5py
 
     # Configuration
-    filepath        = "../testdata/output.hdf5"
+    filepath        = "../testdata/visibility_test_data.hdf5"
     n_ant           = 256
     n_pol           = 2
     frequency_mhz   = 159.375
@@ -44,7 +47,7 @@ if __name__ == "__main__":
     do_dirty_image  = True
     weighting               = "U"
     base_out_fits_name      = "tcc_test"
-    antenna_positions_file  = "/home/aavs/aavs-calibration/config/eda2/antenna_locations.txt"
+    antenna_positions_file  = "../testdata/antenna_locations.txt"
 
     # Load data
     fh = h5py.File(filepath)
